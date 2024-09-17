@@ -6,14 +6,16 @@ data = dict(
     train=dict(
         sup=dict(
             type="CocoDataset",
-            ann_file="/root/paddlejob/workspace/env_run/output/temp/data/coco/annotations/semi_supervised/instances_train2017.${fold}@${percent}.json",
-            img_prefix="/root/paddlejob/workspace/env_run/output/temp/data/coco/train2017/",
+            # ann_file="/root/paddlejob/workspace/env_run/output/temp/data/coco/annotations/semi_supervised/instances_train2017.${fold}@${percent}.json",
+            # img_prefix="/root/paddlejob/workspace/env_run/output/temp/data/coco/train2017/",
+            ann_file="Split/coco_dataset_10/annotations/instances_train2017_10.json",
+            img_prefix="Split/coco_dataset_10/train2017_10/",
 
         ),
         unsup=dict(
             type="CocoDataset",
-            ann_file="/root/paddlejob/workspace/env_run/output/temp/data/coco/annotations/semi_supervised/instances_train2017.${fold}@${percent}-unlabeled.json",
-            img_prefix="/root/paddlejob/workspace/env_run/output/temp/data/coco/train2017/",
+            ann_file="coco_data/annotations/annotations_modified.json",
+            img_prefix="Semi-DETR/coco_data/images_all/",
 
         ),
     ),

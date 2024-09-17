@@ -1,0 +1,3317 @@
+2024-09-17 06:14:06,978 - mmdet.detr_ssod - INFO - [<StreamHandler <stderr> (INFO)>, <FileHandler /home/featurize/work/Semi-DETR/work_dirs/detr_ssod_dino_detr_r50_coco_120k/10/1/20240917_061406.log (INFO)>]
+2024-09-17 06:14:06,979 - mmdet.detr_ssod - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.8.19 (default, Mar 20 2024, 19:58:24) [GCC 11.2.0]
+CUDA available: True
+GPU 0,1: NVIDIA GeForce RTX 3080
+CUDA_HOME: /usr/local/cuda
+NVCC: Build cuda_12.3.r12.3/compiler.33567101_0
+GCC: gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+PyTorch: 1.9.0+cu111
+PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) Math Kernel Library Version 2020.0.0 Product Build 20191122 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v2.1.2 (Git Hash 98be7e8afa711dc9b66c8ff3504129cb82013cdb)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 11.1
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86
+  - CuDNN 8.0.5
+  - Magma 2.5.2
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.1, CUDNN_VERSION=8.0.5, CXX_COMPILER=/opt/rh/devtoolset-7/root/usr/bin/c++, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_KINETO -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=1.9.0, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+TorchVision: 0.10.0+cu111
+OpenCV: 4.10.0
+MMCV: 1.3.16
+MMCV Compiler: GCC 7.3
+MMCV CUDA Compiler: 11.1
+MMDetection: 2.16.0+972db32
+------------------------------------------------------------
+
+2024-09-17 06:14:11,836 - mmdet.detr_ssod - INFO - Distributed training: True
+2024-09-17 06:14:16,697 - mmdet.detr_ssod - INFO - Config:
+dataset_type = 'CocoDataset'
+data_root = '/root/paddlejob/workspace/env_run/output/temp/data/coco/'
+img_norm_cfg = dict(
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(
+        type='Sequential',
+        transforms=[
+            dict(
+                type='RandResize',
+                img_scale=[(480, 1333), (512, 1333), (544, 1333), (576, 1333),
+                           (608, 1333), (640, 1333), (672, 1333), (704, 1333),
+                           (736, 1333), (768, 1333), (800, 1333)],
+                multiscale_mode='value',
+                keep_ratio=True),
+            dict(type='RandFlip', flip_ratio=0.5),
+            dict(
+                type='OneOf',
+                transforms=[
+                    dict(type='Identity'),
+                    dict(type='AutoContrast'),
+                    dict(type='RandEqualize'),
+                    dict(type='RandSolarize'),
+                    dict(type='RandColor'),
+                    dict(type='RandContrast'),
+                    dict(type='RandBrightness'),
+                    dict(type='RandSharpness'),
+                    dict(type='RandPosterize')
+                ])
+        ],
+        record=True),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='Pad', size_divisor=1),
+    dict(type='ExtraAttrs', tag='sup'),
+    dict(type='DefaultFormatBundle'),
+    dict(
+        type='Collect',
+        keys=['img', 'gt_bboxes', 'gt_labels'],
+        meta_keys=('filename', 'ori_shape', 'img_shape', 'img_norm_cfg',
+                   'pad_shape', 'scale_factor', 'tag'))
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(1333, 800),
+        flip=False,
+        transforms=[
+            dict(type='Resize', keep_ratio=True),
+            dict(type='RandomFlip'),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='Pad', size_divisor=1),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ])
+]
+data = dict(
+    samples_per_gpu=5,
+    workers_per_gpu=5,
+    train=dict(
+        type='SemiDataset',
+        sup=dict(
+            type='CocoDataset',
+            ann_file=
+            'Split/coco_dataset_10/annotations/instances_train2017_10.json',
+            img_prefix='Split/coco_dataset_10/train2017_10/',
+            pipeline=[
+                dict(type='LoadImageFromFile'),
+                dict(type='LoadAnnotations', with_bbox=True),
+                dict(
+                    type='Sequential',
+                    transforms=[
+                        dict(
+                            type='RandResize',
+                            img_scale=[(480, 1333), (512, 1333), (544, 1333),
+                                       (576, 1333), (608, 1333), (640, 1333),
+                                       (672, 1333), (704, 1333), (736, 1333),
+                                       (768, 1333), (800, 1333)],
+                            multiscale_mode='value',
+                            keep_ratio=True),
+                        dict(type='RandFlip', flip_ratio=0.5),
+                        dict(
+                            type='OneOf',
+                            transforms=[
+                                dict(type='Identity'),
+                                dict(type='AutoContrast'),
+                                dict(type='RandEqualize'),
+                                dict(type='RandSolarize'),
+                                dict(type='RandColor'),
+                                dict(type='RandContrast'),
+                                dict(type='RandBrightness'),
+                                dict(type='RandSharpness'),
+                                dict(type='RandPosterize')
+                            ])
+                    ],
+                    record=True),
+                dict(
+                    type='Normalize',
+                    mean=[123.675, 116.28, 103.53],
+                    std=[58.395, 57.12, 57.375],
+                    to_rgb=True),
+                dict(type='Pad', size_divisor=1),
+                dict(type='ExtraAttrs', tag='sup'),
+                dict(type='DefaultFormatBundle'),
+                dict(
+                    type='Collect',
+                    keys=['img', 'gt_bboxes', 'gt_labels'],
+                    meta_keys=('filename', 'ori_shape', 'img_shape',
+                               'img_norm_cfg', 'pad_shape', 'scale_factor',
+                               'tag'))
+            ]),
+        unsup=dict(
+            type='CocoDataset',
+            ann_file='coco_data/annotations/annotations_modified.json',
+            img_prefix='Semi-DETR/coco_data/images_all/',
+            pipeline=[
+                dict(type='LoadImageFromFile'),
+                dict(type='LoadAnnotations', with_bbox=True),
+                dict(
+                    type='MultiBranch',
+                    unsup_student=[
+                        dict(
+                            type='Sequential',
+                            transforms=[
+                                dict(
+                                    type='RandResize',
+                                    img_scale=[(480, 1333), (512, 1333),
+                                               (544, 1333), (576, 1333),
+                                               (608, 1333), (640, 1333),
+                                               (672, 1333), (704, 1333),
+                                               (736, 1333), (768, 1333),
+                                               (800, 1333)],
+                                    multiscale_mode='value',
+                                    keep_ratio=True),
+                                dict(type='RandFlip', flip_ratio=0.5),
+                                dict(
+                                    type='ShuffledSequential',
+                                    transforms=[
+                                        dict(
+                                            type='OneOf',
+                                            transforms=[
+                                                dict(type='Identity'),
+                                                dict(type='AutoContrast'),
+                                                dict(type='RandEqualize'),
+                                                dict(type='RandSolarize'),
+                                                dict(type='RandColor'),
+                                                dict(type='RandContrast'),
+                                                dict(type='RandBrightness'),
+                                                dict(type='RandSharpness'),
+                                                dict(type='RandPosterize')
+                                            ]),
+                                        dict(
+                                            type='OneOf',
+                                            transforms=[{
+                                                'type': 'RandTranslate',
+                                                'x': (-0.1, 0.1)
+                                            }, {
+                                                'type': 'RandTranslate',
+                                                'y': (-0.1, 0.1)
+                                            }, {
+                                                'type': 'RandRotate',
+                                                'angle': (-30, 30)
+                                            },
+                                                        [{
+                                                            'type':
+                                                            'RandShear',
+                                                            'x': (-30, 30)
+                                                        }, {
+                                                            'type':
+                                                            'RandShear',
+                                                            'y': (-30, 30)
+                                                        }]])
+                                    ]),
+                                dict(
+                                    type='RandErase',
+                                    n_iterations=(1, 5),
+                                    size=[0, 0.2],
+                                    squared=True)
+                            ],
+                            record=True),
+                        dict(
+                            type='Normalize',
+                            mean=[123.675, 116.28, 103.53],
+                            std=[58.395, 57.12, 57.375],
+                            to_rgb=True),
+                        dict(type='Pad', size_divisor=1),
+                        dict(type='ExtraAttrs', tag='unsup_student'),
+                        dict(type='DefaultFormatBundle'),
+                        dict(
+                            type='Collect',
+                            keys=['img', 'gt_bboxes', 'gt_labels'],
+                            meta_keys=('filename', 'ori_shape', 'img_shape',
+                                       'img_norm_cfg', 'pad_shape',
+                                       'scale_factor', 'tag',
+                                       'transform_matrix'))
+                    ],
+                    unsup_teacher=[
+                        dict(
+                            type='Sequential',
+                            transforms=[
+                                dict(
+                                    type='RandResize',
+                                    img_scale=[(480, 1333), (512, 1333),
+                                               (544, 1333), (576, 1333),
+                                               (608, 1333), (640, 1333),
+                                               (672, 1333), (704, 1333),
+                                               (736, 1333), (768, 1333),
+                                               (800, 1333)],
+                                    multiscale_mode='value',
+                                    keep_ratio=True),
+                                dict(type='RandFlip', flip_ratio=0.5)
+                            ],
+                            record=True),
+                        dict(
+                            type='Normalize',
+                            mean=[123.675, 116.28, 103.53],
+                            std=[58.395, 57.12, 57.375],
+                            to_rgb=True),
+                        dict(type='Pad', size_divisor=1),
+                        dict(type='ExtraAttrs', tag='unsup_teacher'),
+                        dict(type='DefaultFormatBundle'),
+                        dict(
+                            type='Collect',
+                            keys=['img', 'gt_bboxes', 'gt_labels'],
+                            meta_keys=('filename', 'ori_shape', 'img_shape',
+                                       'img_norm_cfg', 'pad_shape',
+                                       'scale_factor', 'tag',
+                                       'transform_matrix'))
+                    ])
+            ],
+            filter_empty_gt=False)),
+    val=dict(
+        type='CocoDataset',
+        ann_file=
+        '/root/paddlejob/workspace/env_run/output/temp/data/coco/annotations/instances_val2017.json',
+        img_prefix=
+        '/root/paddlejob/workspace/env_run/output/temp/data/coco/val2017/',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(1333, 800),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=True),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[123.675, 116.28, 103.53],
+                        std=[58.395, 57.12, 57.375],
+                        to_rgb=True),
+                    dict(type='Pad', size_divisor=1),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ]),
+    test=dict(
+        type='CocoDataset',
+        ann_file=
+        '/root/paddlejob/workspace/env_run/output/temp/data/coco/annotations/instances_val2017.json',
+        img_prefix=
+        '/root/paddlejob/workspace/env_run/output/temp/data/coco/val2017/',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(1333, 800),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=True),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[123.675, 116.28, 103.53],
+                        std=[58.395, 57.12, 57.375],
+                        to_rgb=True),
+                    dict(type='Pad', size_divisor=1),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ]),
+    sampler=dict(
+        train=dict(
+            type='SemiBalanceSampler',
+            sample_ratio=[1, 4],
+            by_prob=True,
+            epoch_length=7330)))
+evaluation = dict(interval=4000, metric='bbox', type='SubModulesDistEvalHook')
+checkpoint_config = dict(
+    interval=4000, create_symlink=False, max_keep_ckpts=5, by_epoch=False)
+log_config = dict(
+    interval=50,
+    hooks=[dict(type='TextLoggerHook'),
+           dict(type='TensorboardLoggerHook')])
+custom_hooks = [
+    dict(type='NumClassCheckHook'),
+    dict(type='MeanTeacher', momentum=0.999, interval=1, warm_up=0),
+    dict(type='StepRecord', normalize=False)
+]
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = None
+resume_from = None
+workflow = [('train', 1)]
+mmdet_base = '../../thirdparty/mmdetection/configs/_base_'
+model = dict(
+    type='DinoDetrSSOD',
+    model=dict(
+        type='DINODETR',
+        backbone=dict(
+            type='ResNet',
+            depth=50,
+            num_stages=4,
+            out_indices=(1, 2, 3),
+            frozen_stages=1,
+            norm_cfg=dict(type='BN', requires_grad=False),
+            norm_eval=True,
+            style='pytorch',
+            init_cfg=dict(
+                type='Pretrained', checkpoint='torchvision://resnet50')),
+        bbox_head=dict(
+            type='DINODETRSSODHead',
+            num_query=900,
+            query_dim=4,
+            random_refpoints_xy=False,
+            bbox_embed_diff_each_layer=False,
+            num_classes=6,
+            in_channels=2048,
+            transformer=dict(type='DINOTransformer'),
+            positional_encoding=dict(
+                type='SinePositionalEncodingHW',
+                temperatureH=20,
+                temperatureW=20,
+                num_feats=128,
+                normalize=True),
+            loss_cls1=dict(
+                type='TaskAlignedFocalLoss',
+                use_sigmoid=True,
+                gamma=2.0,
+                loss_weight=2.0),
+            loss_cls2=dict(
+                type='FocalLoss',
+                use_sigmoid=True,
+                gamma=2.0,
+                alpha=0.25,
+                loss_weight=2.0),
+            loss_bbox=dict(type='L1Loss', loss_weight=5.0),
+            loss_iou=dict(type='GIoULoss', loss_weight=2.0)),
+        train_cfg=dict(
+            assigner1=dict(type='O2MAssigner'),
+            assigner2=dict(
+                type='HungarianAssigner',
+                cls_cost=dict(type='FocalLossCost', weight=2.0),
+                reg_cost=dict(
+                    type='BBoxL1Cost', weight=5.0, box_format='xywh'),
+                iou_cost=dict(type='IoUCost', iou_mode='giou', weight=2.0)),
+            warm_up_step=60000),
+        test_cfg=dict(max_per_img=300, warm_up_step=60000)),
+    train_cfg=dict(
+        use_teacher_proposal=False,
+        pseudo_label_initial_score_thr=0.4,
+        min_pseduo_box_size=0,
+        unsup_weight=4.0,
+        aug_query=False),
+    test_cfg=dict(inference_on='student'))
+optimizer = dict(
+    type='AdamW',
+    lr=0.0001,
+    weight_decay=0.0001,
+    paramwise_cfg=dict(
+        custom_keys=dict(backbone=dict(lr_mult=0.1, decay_mult=1.0))))
+optimizer_config = dict(grad_clip=dict(max_norm=0.1, norm_type=2))
+lr_config = dict(policy='step', step=[120000, 160000])
+runner = dict(type='IterBasedRunner', max_iters=120000)
+strong_pipeline = [
+    dict(
+        type='Sequential',
+        transforms=[
+            dict(
+                type='RandResize',
+                img_scale=[(480, 1333), (512, 1333), (544, 1333), (576, 1333),
+                           (608, 1333), (640, 1333), (672, 1333), (704, 1333),
+                           (736, 1333), (768, 1333), (800, 1333)],
+                multiscale_mode='value',
+                keep_ratio=True),
+            dict(type='RandFlip', flip_ratio=0.5),
+            dict(
+                type='ShuffledSequential',
+                transforms=[
+                    dict(
+                        type='OneOf',
+                        transforms=[
+                            dict(type='Identity'),
+                            dict(type='AutoContrast'),
+                            dict(type='RandEqualize'),
+                            dict(type='RandSolarize'),
+                            dict(type='RandColor'),
+                            dict(type='RandContrast'),
+                            dict(type='RandBrightness'),
+                            dict(type='RandSharpness'),
+                            dict(type='RandPosterize')
+                        ]),
+                    dict(
+                        type='OneOf',
+                        transforms=[{
+                            'type': 'RandTranslate',
+                            'x': (-0.1, 0.1)
+                        }, {
+                            'type': 'RandTranslate',
+                            'y': (-0.1, 0.1)
+                        }, {
+                            'type': 'RandRotate',
+                            'angle': (-30, 30)
+                        },
+                                    [{
+                                        'type': 'RandShear',
+                                        'x': (-30, 30)
+                                    }, {
+                                        'type': 'RandShear',
+                                        'y': (-30, 30)
+                                    }]])
+                ]),
+            dict(
+                type='RandErase',
+                n_iterations=(1, 5),
+                size=[0, 0.2],
+                squared=True)
+        ],
+        record=True),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='Pad', size_divisor=1),
+    dict(type='ExtraAttrs', tag='unsup_student'),
+    dict(type='DefaultFormatBundle'),
+    dict(
+        type='Collect',
+        keys=['img', 'gt_bboxes', 'gt_labels'],
+        meta_keys=('filename', 'ori_shape', 'img_shape', 'img_norm_cfg',
+                   'pad_shape', 'scale_factor', 'tag', 'transform_matrix'))
+]
+weak_pipeline = [
+    dict(
+        type='Sequential',
+        transforms=[
+            dict(
+                type='RandResize',
+                img_scale=[(480, 1333), (512, 1333), (544, 1333), (576, 1333),
+                           (608, 1333), (640, 1333), (672, 1333), (704, 1333),
+                           (736, 1333), (768, 1333), (800, 1333)],
+                multiscale_mode='value',
+                keep_ratio=True),
+            dict(type='RandFlip', flip_ratio=0.5)
+        ],
+        record=True),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='Pad', size_divisor=1),
+    dict(type='ExtraAttrs', tag='unsup_teacher'),
+    dict(type='DefaultFormatBundle'),
+    dict(
+        type='Collect',
+        keys=['img', 'gt_bboxes', 'gt_labels'],
+        meta_keys=('filename', 'ori_shape', 'img_shape', 'img_norm_cfg',
+                   'pad_shape', 'scale_factor', 'tag', 'transform_matrix'))
+]
+unsup_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(
+        type='MultiBranch',
+        unsup_student=[
+            dict(
+                type='Sequential',
+                transforms=[
+                    dict(
+                        type='RandResize',
+                        img_scale=[(480, 1333), (512, 1333), (544, 1333),
+                                   (576, 1333), (608, 1333), (640, 1333),
+                                   (672, 1333), (704, 1333), (736, 1333),
+                                   (768, 1333), (800, 1333)],
+                        multiscale_mode='value',
+                        keep_ratio=True),
+                    dict(type='RandFlip', flip_ratio=0.5),
+                    dict(
+                        type='ShuffledSequential',
+                        transforms=[
+                            dict(
+                                type='OneOf',
+                                transforms=[
+                                    dict(type='Identity'),
+                                    dict(type='AutoContrast'),
+                                    dict(type='RandEqualize'),
+                                    dict(type='RandSolarize'),
+                                    dict(type='RandColor'),
+                                    dict(type='RandContrast'),
+                                    dict(type='RandBrightness'),
+                                    dict(type='RandSharpness'),
+                                    dict(type='RandPosterize')
+                                ]),
+                            dict(
+                                type='OneOf',
+                                transforms=[{
+                                    'type': 'RandTranslate',
+                                    'x': (-0.1, 0.1)
+                                }, {
+                                    'type': 'RandTranslate',
+                                    'y': (-0.1, 0.1)
+                                }, {
+                                    'type': 'RandRotate',
+                                    'angle': (-30, 30)
+                                },
+                                            [{
+                                                'type': 'RandShear',
+                                                'x': (-30, 30)
+                                            }, {
+                                                'type': 'RandShear',
+                                                'y': (-30, 30)
+                                            }]])
+                        ]),
+                    dict(
+                        type='RandErase',
+                        n_iterations=(1, 5),
+                        size=[0, 0.2],
+                        squared=True)
+                ],
+                record=True),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='Pad', size_divisor=1),
+            dict(type='ExtraAttrs', tag='unsup_student'),
+            dict(type='DefaultFormatBundle'),
+            dict(
+                type='Collect',
+                keys=['img', 'gt_bboxes', 'gt_labels'],
+                meta_keys=('filename', 'ori_shape', 'img_shape',
+                           'img_norm_cfg', 'pad_shape', 'scale_factor', 'tag',
+                           'transform_matrix'))
+        ],
+        unsup_teacher=[
+            dict(
+                type='Sequential',
+                transforms=[
+                    dict(
+                        type='RandResize',
+                        img_scale=[(480, 1333), (512, 1333), (544, 1333),
+                                   (576, 1333), (608, 1333), (640, 1333),
+                                   (672, 1333), (704, 1333), (736, 1333),
+                                   (768, 1333), (800, 1333)],
+                        multiscale_mode='value',
+                        keep_ratio=True),
+                    dict(type='RandFlip', flip_ratio=0.5)
+                ],
+                record=True),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='Pad', size_divisor=1),
+            dict(type='ExtraAttrs', tag='unsup_teacher'),
+            dict(type='DefaultFormatBundle'),
+            dict(
+                type='Collect',
+                keys=['img', 'gt_bboxes', 'gt_labels'],
+                meta_keys=('filename', 'ori_shape', 'img_shape',
+                           'img_norm_cfg', 'pad_shape', 'scale_factor', 'tag',
+                           'transform_matrix'))
+        ])
+]
+fold = 1
+percent = 10
+work_dir = 'work_dirs/detr_ssod_dino_detr_r50_coco_120k/10/1/'
+cfg_name = 'detr_ssod_dino_detr_r50_coco_120k'
+gpu_ids = range(0, 2)
+
+2024-09-17 06:14:17,717 - mmdet.detr_ssod - INFO - initialize ResNet with init_cfg {'type': 'Pretrained', 'checkpoint': 'torchvision://resnet50'}
+2024-09-17 06:14:23,232 - mmdet.detr_ssod - INFO - initialize ResNet with init_cfg {'type': 'Pretrained', 'checkpoint': 'torchvision://resnet50'}
+Name of parameter - Initialization information
+
+teacher.backbone.conv1.weight - torch.Size([64, 3, 7, 7]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.0.conv1.weight - torch.Size([64, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.0.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.0.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.0.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.0.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.0.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.0.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.0.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.0.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.0.downsample.0.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.0.downsample.1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.0.downsample.1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.1.conv1.weight - torch.Size([64, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.1.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.1.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.1.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.1.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.1.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.1.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.1.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.1.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.2.conv1.weight - torch.Size([64, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.2.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.2.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.2.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.2.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.2.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.2.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.2.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer1.2.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.0.conv1.weight - torch.Size([128, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.0.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.0.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.0.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.0.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.0.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.0.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.0.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.0.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.0.downsample.0.weight - torch.Size([512, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.0.downsample.1.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.0.downsample.1.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.1.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.1.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.1.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.1.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.1.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.1.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.1.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.1.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.1.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.2.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.2.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.2.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.2.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.2.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.2.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.2.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.2.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.2.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.3.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.3.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.3.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.3.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.3.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.3.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.3.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.3.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer2.3.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.0.conv1.weight - torch.Size([256, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.0.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.0.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.0.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.0.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.0.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.0.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.0.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.0.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.0.downsample.0.weight - torch.Size([1024, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.0.downsample.1.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.0.downsample.1.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.1.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.1.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.1.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.1.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.1.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.1.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.1.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.1.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.1.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.2.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.2.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.2.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.2.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.2.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.2.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.2.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.2.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.2.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.3.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.3.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.3.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.3.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.3.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.3.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.3.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.3.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.3.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.4.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.4.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.4.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.4.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.4.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.4.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.4.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.4.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.4.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.5.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.5.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.5.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.5.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.5.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.5.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.5.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.5.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer3.5.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.0.conv1.weight - torch.Size([512, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.0.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.0.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.0.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.0.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.0.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.0.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.0.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.0.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.0.downsample.0.weight - torch.Size([2048, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.0.downsample.1.weight - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.0.downsample.1.bias - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.1.conv1.weight - torch.Size([512, 2048, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.1.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.1.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.1.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.1.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.1.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.1.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.1.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.1.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.2.conv1.weight - torch.Size([512, 2048, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.2.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.2.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.2.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.2.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.2.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.2.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.2.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.backbone.layer4.2.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+teacher.bbox_head.transformer.level_embed - torch.Size([4, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.self_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.self_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.self_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.self_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.self_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.self_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.self_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.self_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.0.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.self_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.self_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.self_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.self_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.self_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.self_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.self_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.self_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.1.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.self_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.self_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.self_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.self_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.self_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.self_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.self_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.self_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.2.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.self_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.self_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.self_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.self_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.self_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.self_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.self_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.self_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.3.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.self_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.self_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.self_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.self_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.self_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.self_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.self_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.self_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.4.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.self_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.self_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.self_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.self_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.self_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.self_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.self_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.self_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.encoder.layers.5.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.cross_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.cross_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.cross_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.cross_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.cross_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.cross_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.cross_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.cross_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.self_attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.self_attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.self_attn.out_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.self_attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.0.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.cross_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.cross_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.cross_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.cross_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.cross_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.cross_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.cross_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.cross_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.self_attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.self_attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.self_attn.out_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.self_attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.1.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.cross_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.cross_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.cross_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.cross_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.cross_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.cross_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.cross_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.cross_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.self_attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.self_attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.self_attn.out_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.self_attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.2.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.cross_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.cross_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.cross_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.cross_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.cross_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.cross_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.cross_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.cross_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.self_attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.self_attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.self_attn.out_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.self_attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.3.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.cross_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.cross_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.cross_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.cross_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.cross_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.cross_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.cross_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.cross_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.self_attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.self_attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.self_attn.out_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.self_attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.4.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.cross_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.cross_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.cross_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.cross_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.cross_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.cross_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.cross_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.cross_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.self_attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.self_attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.self_attn.out_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.self_attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.layers.5.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.norm.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.norm.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.ref_point_head.layers.0.weight - torch.Size([256, 512]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.ref_point_head.layers.0.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.ref_point_head.layers.1.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.decoder.ref_point_head.layers.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.tgt_embed.weight - torch.Size([900, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.enc_output.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.enc_output.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.enc_output_norm.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.transformer.enc_output_norm.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.input_proj.0.0.weight - torch.Size([256, 512, 1, 1]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+teacher.bbox_head.input_proj.0.0.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+teacher.bbox_head.input_proj.0.1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.input_proj.0.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.input_proj.1.0.weight - torch.Size([256, 1024, 1, 1]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+teacher.bbox_head.input_proj.1.0.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+teacher.bbox_head.input_proj.1.1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.input_proj.1.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.input_proj.2.0.weight - torch.Size([256, 2048, 1, 1]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+teacher.bbox_head.input_proj.2.0.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+teacher.bbox_head.input_proj.2.1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.input_proj.2.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.input_proj.3.0.weight - torch.Size([256, 2048, 3, 3]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+teacher.bbox_head.input_proj.3.0.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+teacher.bbox_head.input_proj.3.1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.input_proj.3.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_reg.0.layers.0.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_reg.0.layers.0.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_reg.0.layers.1.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_reg.0.layers.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_reg.0.layers.2.weight - torch.Size([4, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_reg.0.layers.2.bias - torch.Size([4]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_cls.0.weight - torch.Size([6, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_cls.0.bias - torch.Size([6]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_enc_reg.layers.0.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_enc_reg.layers.0.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_enc_reg.layers.1.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_enc_reg.layers.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_enc_reg.layers.2.weight - torch.Size([4, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_enc_reg.layers.2.bias - torch.Size([4]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_enc_cls.weight - torch.Size([6, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.fc_enc_cls.bias - torch.Size([6]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+teacher.bbox_head.label_enc.weight - torch.Size([82, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.backbone.conv1.weight - torch.Size([64, 3, 7, 7]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.0.conv1.weight - torch.Size([64, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.0.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.0.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.0.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.0.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.0.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.0.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.0.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.0.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.0.downsample.0.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.0.downsample.1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.0.downsample.1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.1.conv1.weight - torch.Size([64, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.1.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.1.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.1.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.1.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.1.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.1.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.1.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.1.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.2.conv1.weight - torch.Size([64, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.2.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.2.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.2.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.2.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.2.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.2.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.2.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer1.2.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.0.conv1.weight - torch.Size([128, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.0.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.0.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.0.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.0.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.0.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.0.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.0.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.0.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.0.downsample.0.weight - torch.Size([512, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.0.downsample.1.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.0.downsample.1.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.1.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.1.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.1.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.1.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.1.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.1.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.1.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.1.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.1.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.2.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.2.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.2.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.2.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.2.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.2.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.2.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.2.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.2.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.3.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.3.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.3.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.3.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.3.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.3.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.3.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.3.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer2.3.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.0.conv1.weight - torch.Size([256, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.0.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.0.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.0.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.0.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.0.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.0.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.0.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.0.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.0.downsample.0.weight - torch.Size([1024, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.0.downsample.1.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.0.downsample.1.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.1.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.1.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.1.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.1.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.1.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.1.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.1.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.1.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.1.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.2.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.2.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.2.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.2.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.2.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.2.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.2.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.2.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.2.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.3.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.3.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.3.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.3.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.3.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.3.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.3.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.3.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.3.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.4.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.4.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.4.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.4.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.4.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.4.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.4.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.4.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.4.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.5.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.5.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.5.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.5.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.5.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.5.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.5.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.5.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer3.5.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.0.conv1.weight - torch.Size([512, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.0.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.0.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.0.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.0.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.0.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.0.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.0.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.0.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.0.downsample.0.weight - torch.Size([2048, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.0.downsample.1.weight - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.0.downsample.1.bias - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.1.conv1.weight - torch.Size([512, 2048, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.1.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.1.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.1.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.1.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.1.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.1.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.1.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.1.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.2.conv1.weight - torch.Size([512, 2048, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.2.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.2.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.2.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.2.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.2.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.2.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.2.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.backbone.layer4.2.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+student.bbox_head.transformer.level_embed - torch.Size([4, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.self_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.self_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.self_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.self_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.self_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.self_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.self_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.self_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.0.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.self_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.self_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.self_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.self_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.self_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.self_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.self_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.self_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.1.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.self_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.self_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.self_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.self_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.self_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.self_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.self_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.self_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.2.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.self_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.self_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.self_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.self_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.self_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.self_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.self_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.self_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.3.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.self_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.self_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.self_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.self_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.self_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.self_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.self_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.self_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.4.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.self_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.self_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.self_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.self_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.self_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.self_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.self_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.self_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.encoder.layers.5.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.cross_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.cross_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.cross_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.cross_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.cross_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.cross_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.cross_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.cross_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.self_attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.self_attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.self_attn.out_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.self_attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.0.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.cross_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.cross_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.cross_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.cross_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.cross_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.cross_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.cross_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.cross_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.self_attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.self_attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.self_attn.out_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.self_attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.1.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.cross_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.cross_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.cross_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.cross_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.cross_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.cross_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.cross_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.cross_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.self_attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.self_attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.self_attn.out_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.self_attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.2.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.cross_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.cross_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.cross_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.cross_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.cross_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.cross_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.cross_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.cross_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.self_attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.self_attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.self_attn.out_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.self_attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.3.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.cross_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.cross_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.cross_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.cross_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.cross_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.cross_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.cross_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.cross_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.self_attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.self_attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.self_attn.out_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.self_attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.4.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.cross_attn.sampling_offsets.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.cross_attn.sampling_offsets.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.cross_attn.attention_weights.weight - torch.Size([128, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.cross_attn.attention_weights.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.cross_attn.value_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.cross_attn.value_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.cross_attn.output_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.cross_attn.output_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.self_attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.self_attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.self_attn.out_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.self_attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.linear1.weight - torch.Size([2048, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.linear1.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.linear2.weight - torch.Size([256, 2048]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.linear2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.layers.5.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.norm.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.norm.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.ref_point_head.layers.0.weight - torch.Size([256, 512]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.ref_point_head.layers.0.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.ref_point_head.layers.1.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.decoder.ref_point_head.layers.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.tgt_embed.weight - torch.Size([900, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.enc_output.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.enc_output.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.enc_output_norm.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.transformer.enc_output_norm.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.input_proj.0.0.weight - torch.Size([256, 512, 1, 1]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+student.bbox_head.input_proj.0.0.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+student.bbox_head.input_proj.0.1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.input_proj.0.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.input_proj.1.0.weight - torch.Size([256, 1024, 1, 1]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+student.bbox_head.input_proj.1.0.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+student.bbox_head.input_proj.1.1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.input_proj.1.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.input_proj.2.0.weight - torch.Size([256, 2048, 1, 1]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+student.bbox_head.input_proj.2.0.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+student.bbox_head.input_proj.2.1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.input_proj.2.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.input_proj.3.0.weight - torch.Size([256, 2048, 3, 3]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+student.bbox_head.input_proj.3.0.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in DINODETRSSODHead  
+
+student.bbox_head.input_proj.3.1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.input_proj.3.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_reg.0.layers.0.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_reg.0.layers.0.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_reg.0.layers.1.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_reg.0.layers.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_reg.0.layers.2.weight - torch.Size([4, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_reg.0.layers.2.bias - torch.Size([4]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_cls.0.weight - torch.Size([6, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_cls.0.bias - torch.Size([6]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_enc_reg.layers.0.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_enc_reg.layers.0.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_enc_reg.layers.1.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_enc_reg.layers.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_enc_reg.layers.2.weight - torch.Size([4, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_enc_reg.layers.2.bias - torch.Size([4]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_enc_cls.weight - torch.Size([6, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.fc_enc_cls.bias - torch.Size([6]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+student.bbox_head.label_enc.weight - torch.Size([82, 256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+projector.conv1.weight - torch.Size([256, 256, 3, 3]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+projector.bn1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+projector.bn1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+projector.conv2.weight - torch.Size([256, 256, 3, 3]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+projector.bn2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+projector.bn2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+projector.fc1.weight - torch.Size([1024, 12544]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+projector.fc1.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+projector.bn.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+projector.bn.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+projector.fc2.weight - torch.Size([256, 1024]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+
+projector.fc2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of DinoDetrSSOD  
+2024-09-17 06:14:24,047 - mmdet.detr_ssod - INFO - Start running, host: featurize@featurize, work_dir: /home/featurize/work/Semi-DETR/work_dirs/detr_ssod_dino_detr_r50_coco_120k/10/1
+2024-09-17 06:14:24,048 - mmdet.detr_ssod - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) CheckpointHook                     
+(NORMAL      ) MeanTeacher                        
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) NumClassCheckHook                  
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) MeanTeacher                        
+(NORMAL      ) StepRecord                         
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(ABOVE_NORMAL) OptimizerHook                      
+(NORMAL      ) CheckpointHook                     
+(NORMAL      ) MeanTeacher                        
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) NumClassCheckHook                  
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+2024-09-17 06:14:24,049 - mmdet.detr_ssod - INFO - workflow: [('train', 1)], max: 120000 iters
+2024-09-17 06:14:24,049 - mmdet.detr_ssod - INFO - Checkpoints will be saved to /home/featurize/work/Semi-DETR/work_dirs/detr_ssod_dino_detr_r50_coco_120k/10/1 by HardDiskBackend.
